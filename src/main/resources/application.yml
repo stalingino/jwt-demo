@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: 
+    username: 
+    password: 
+
+application:
+  name: demo-server
+  secretKeys:
+    ifmruser: TrZ1h3IAcf0HN+rAsmdXaFdwYXO6BLN9hNR2pj9cIs4=
