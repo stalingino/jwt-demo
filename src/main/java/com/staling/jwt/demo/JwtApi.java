@@ -1,6 +1,7 @@
 package com.staling.jwt.demo;
 
 import java.security.KeyPair;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.crypto.SecretKey;
@@ -43,6 +44,7 @@ public class JwtApi {
         return Jwts.builder()
             .setId(UUID.randomUUID().toString())
             .setIssuer(issuer)
+            .setIssuedAt(new Date())
             .setAudience(applicationName)
             .signWith(key)
             .compact();
