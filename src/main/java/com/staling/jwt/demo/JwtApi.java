@@ -26,13 +26,15 @@ public class JwtApi {
     private String applicationName;
 
     @GetMapping("/generateSecretKey/{algorithm}")
-    public String generateSecretKey(@ValidateSecret(type = ValidateSecret.Type.SHARED) @PathVariable SignatureAlgorithm algorithm) {
+    public String generateSecretKey(@PathVariable(required = false) SignatureAlgorithm algorithm) {
+        if (algorithm == null) algorithm = SignatureAlgorithm.HS256;
         SecretKey key = Keys.secretKeyFor(algorithm);
         return Encoders.BASE64.encode(key.getEncoded());
     }
 
-    @GetMapping("generateAsymmetricKeys/{algorithm}")
-    public String generateAsymmetricKeys(@ValidateSecret(type = ValidateSecret.Type.ASYMMETRIC) @PathVariable SignatureAlgorithm algorithm) {
+    @GetMapping("/generateAsymmetricKeys/{algorithm}")
+    public String generateAsymmetricKeys(@PathVariable(required = false) SignatureAlgorithm algorithm) {
+        if (algorithm == null) algorithm = SignatureAlgorithm.RS256;
         KeyPair keyPair = Keys.keyPairFor(algorithm);
         return "Private Key:\n" + Encoders.BASE64.encode(keyPair.getPrivate().getEncoded()) + "\n\nPublic Key:\n" + 
                 Encoders.BASE64.encode(keyPair.getPublic().getEncoded());
