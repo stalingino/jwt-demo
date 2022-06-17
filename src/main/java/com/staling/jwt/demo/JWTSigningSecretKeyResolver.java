@@ -12,8 +12,8 @@ import io.jsonwebtoken.SigningKeyResolverAdapter;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
-@Component
-public class JWTSigningKeyCustomResolver extends SigningKeyResolverAdapter {
+@Component("secretKeyResolver")
+public class JWTSigningSecretKeyResolver extends SigningKeyResolverAdapter {
 
     @Autowired
     private Environment env;

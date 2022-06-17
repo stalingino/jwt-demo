@@ -7,4 +7,6 @@ spring:
 application:
   name: demo-server
   secretKeys:
-    ifmruser: TrZ1h3IAcf0HN+rAsmdXaFdwYXO6BLN9hNR2pj9cIs4=
+    ifmruser: AtbbM2ZStHtJYvbj52FkVQsZ8roTMIgbY5AdZafiXyU=
+  publicKeys:
+    ifmruser: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx0+ROUu6D/V++5NxNlzyiNIxHJUJULOQTwEOUZnNNu0tCFkMcXcFWNQ+EG4oVPyVP7SjLrVczZaDdDQjsO4UaBTTmXi0mVpYWnCGU4vZkSKdzFWLc+9OtFKEbIORsXHI3qx2tYvKcGz0wkLAbKd1IL2Kx2jw0cOlh1+Qu2SBqfoDnWIlanWLSU/a7WMD+BsKJJH9F+d4MRXrhse/txfIoMEjGrhhLOsmfA7dM7e/SHxOXzykxchnmvRZonDTEo7s60ti8Ep2AoGbI+3AeHuOgQ4hDCnXZ4qB65B8uhL+ZZIKJ8KzNkIP08tigLOk6fVfd+RNAuEtydN6v4cFrDqeqwIDAQAB

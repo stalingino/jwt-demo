@@ -10,12 +10,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SigningKeyResolverAdapter;
 
 @Component
 public class JWTFilter implements Filter {
@@ -24,7 +26,12 @@ public class JWTFilter implements Filter {
     private String applicationName;
 
     @Autowired
-    private JWTSigningKeyCustomResolver signingKeyCustomResolver;
+    @Qualifier("secretKeyResolver")
+    private SigningKeyResolverAdapter secretKeyResolver;
+
+    @Autowired
+    @Qualifier("publicKeyResolver")
+    private SigningKeyResolverAdapter publicKeyResolver;
 
     @Autowired
     private UserRepository userRepository;
@@ -34,15 +41,12 @@ public class JWTFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
         String path = request.getRequestURI().substring(request.getContextPath().length());
-        final String authorization = request.getHeader("Authorization");
-        String jwtToken = null;
         if (path.startsWith("/api")) {
-            if (authorization != null && authorization.startsWith("Bearer ")) {
-                jwtToken = authorization.substring(7);
-            } else {
+            String authorization = request.getHeader("Authorization");
+            if (authorization == null || !authorization.startsWith("Secret ")&& !authorization.startsWith("Public ")) {
                 throw new ProgramException("Missing token");
             }
-            Jws<Claims> jwsCLaims = validateJWT(jwtToken);
+            Jws<Claims> jwsCLaims = validateJWT(authorization);
             String issuer = jwsCLaims.getBody().getIssuer();
             String audience = jwsCLaims.getBody().getAudience();
             if (!isValidUser(issuer)) {
@@ -60,11 +64,11 @@ public class JWTFilter implements Filter {
         return user != null;
     }
 
-    private Jws<Claims> validateJWT(String jwtToken) {
+    private Jws<Claims> validateJWT(String authorization) {
         return Jwts.parserBuilder()
-                .setSigningKeyResolver(signingKeyCustomResolver)
+                .setSigningKeyResolver(authorization.startsWith("Secret ")? secretKeyResolver: publicKeyResolver)
                 .build()
-                .parseClaimsJws(jwtToken);
+                .parseClaimsJws(authorization.substring(7));
     }
 
 }
