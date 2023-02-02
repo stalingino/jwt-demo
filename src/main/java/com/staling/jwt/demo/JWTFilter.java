@@ -69,11 +69,18 @@ public class JWTFilter implements Filter {
     }
 
     private Jws<Claims> validateJWT(String token) {
-        String algorithm = new JSONObject(new String(Decoders.BASE64.decode(token.split("\\.")[0]))).getString("alg");
         return Jwts.parserBuilder()
-                .setSigningKeyResolver(algorithm.startsWith("HS")? secretKeyResolver: publicKeyResolver)
+                .setSigningKeyResolver(getSigningKeyResolver(token))
                 .build()
                 .parseClaimsJws(token);
+    }
+
+    private SigningKeyResolverAdapter getSigningKeyResolver(String token) {
+        try {
+            return new JSONObject(new String(Decoders.BASE64.decode(token.split("\\.")[0]))).getString("alg").startsWith("HS")? secretKeyResolver: publicKeyResolver;
+        } catch (Exception e) {
+            throw new ProgramException("Invalid token", e);
+        }
     }
 
 }
