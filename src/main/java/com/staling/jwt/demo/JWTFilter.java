@@ -9,6 +9,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
+import io.jsonwebtoken.io.Decoders;
 
 @Component
 public class JWTFilter implements Filter {
@@ -43,10 +45,12 @@ public class JWTFilter implements Filter {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         if (path.startsWith("/api")) {
             String authorization = request.getHeader("Authorization");
-            if (authorization == null || !authorization.startsWith("Secret ")&& !authorization.startsWith("Public ")) {
+            if (authorization == null || !authorization.startsWith("JWT ")) {
                 throw new ProgramException("Missing token");
             }
-            Jws<Claims> jwsCLaims = validateJWT(authorization);
+            Jws<Claims> jwsCLaims = validateJWT(authorization.substring(4));
+            String algorithm = jwsCLaims.getHeader().getAlgorithm();
+            System.out.println(algorithm);
             String issuer = jwsCLaims.getBody().getIssuer();
             String audience = jwsCLaims.getBody().getAudience();
             if (!isValidUser(issuer)) {
@@ -64,11 +68,12 @@ public class JWTFilter implements Filter {
         return user != null;
     }
 
-    private Jws<Claims> validateJWT(String authorization) {
+    private Jws<Claims> validateJWT(String token) {
+        String algorithm = new JSONObject(new String(Decoders.BASE64.decode(token.split("\\.")[0]))).getString("alg");
         return Jwts.parserBuilder()
-                .setSigningKeyResolver(authorization.startsWith("Secret ")? secretKeyResolver: publicKeyResolver)
+                .setSigningKeyResolver(algorithm.startsWith("HS")? secretKeyResolver: publicKeyResolver)
                 .build()
-                .parseClaimsJws(authorization.substring(7));
+                .parseClaimsJws(token);
     }
 
 }
