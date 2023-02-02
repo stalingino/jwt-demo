@@ -6,7 +6,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +27,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import static io.jsonwebtoken.SignatureAlgorithm.*;
 
 @RestController
 @RequestMapping("/jwt")
@@ -39,20 +43,28 @@ public class JwtApi {
         keyFactory = KeyFactory.getInstance("RSA");
     }
 
-    @GetMapping("/generateSecretKey/{algorithm}")
-    public String generateSecretKey(@PathVariable(required = false) SignatureAlgorithm algorithm) {
-        if (algorithm == null) algorithm = SignatureAlgorithm.HS256;
-        SecretKey key = Keys.secretKeyFor(algorithm);
-        return Encoders.BASE64.encode(key.getEncoded());
-    }
+    private static final Set<SignatureAlgorithm> SHARED_ALG = new HashSet<>(Arrays.asList(HS256, HS384, HS512));
+    private static final Set<SignatureAlgorithm> ASYMMETRIC_ALG = new HashSet<>(Arrays.asList(RS256, RS384, RS512, PS256, PS384, PS512, ES256, ES384, ES512));
 
-    @GetMapping("/generateAsymmetricKeys/{algorithm}")
-    public String generateAsymmetricKeys(@PathVariable(required = false) SignatureAlgorithm algorithm) {
-        if (algorithm == null) algorithm = SignatureAlgorithm.RS256;
-        KeyPair keyPair = Keys.keyPairFor(algorithm);
-        return new JSONObject()
-                .put("privateKey", Encoders.BASE64.encode(keyPair.getPrivate().getEncoded()))
-                .put("publicKey", Encoders.BASE64.encode(keyPair.getPublic().getEncoded())).toString();
+    @GetMapping("/generateKeys/{algorithm}")
+    public String generateKeys(@PathVariable(required = false) SignatureAlgorithm algorithm) {
+        if (algorithm == null) algorithm = SignatureAlgorithm.HS256;
+        if (SHARED_ALG.contains(algorithm)) {
+            SecretKey key = Keys.secretKeyFor(algorithm);
+            String secretKey = Encoders.BASE64.encode(key.getEncoded());
+            return new JSONObject()
+                    .put("privateKey", secretKey)
+                    .put("publicKey", secretKey)
+                    .toString();
+        } else if (ASYMMETRIC_ALG.contains(algorithm)) {
+            KeyPair keyPair = Keys.keyPairFor(algorithm);
+            return new JSONObject()
+                    .put("privateKey", Encoders.BASE64.encode(keyPair.getPrivate().getEncoded()))
+                    .put("publicKey", Encoders.BASE64.encode(keyPair.getPublic().getEncoded()))
+                    .toString();
+        } else {
+            throw new ProgramException("Invalid algorithm");
+        }
     }
 
     @GetMapping("/generateToken")

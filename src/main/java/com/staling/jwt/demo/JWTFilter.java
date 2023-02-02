@@ -49,8 +49,6 @@ public class JWTFilter implements Filter {
                 throw new ProgramException("Missing token");
             }
             Jws<Claims> jwsCLaims = validateJWT(authorization.substring(4));
-            String algorithm = jwsCLaims.getHeader().getAlgorithm();
-            System.out.println(algorithm);
             String issuer = jwsCLaims.getBody().getIssuer();
             String audience = jwsCLaims.getBody().getAudience();
             if (!isValidUser(issuer)) {
